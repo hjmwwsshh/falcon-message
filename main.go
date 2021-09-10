@@ -15,7 +15,7 @@ import (
     "github.com/sdvdxl/falcon-message/config"
     "github.com/sdvdxl/falcon-message/sender"
     "github.com/sdvdxl/falcon-message/util"
-    "github.com/tylerb/graceful"
+    "github.com/tylerstillwater/graceful"
 )
 
 // OK
@@ -102,15 +102,21 @@ func main() {
         content = buffer.String()
 
         if strings.HasPrefix(tos, IMDingPrefix) { //是钉钉
-            tokens := tos[len(IMDingPrefix):]
-
-            if cfg.DingTalk.Enable {
-                for _, v := range strings.Split(tokens, ";") {
-                    go func(token string) {
-                        if err := ding.Send(token, content, cfg.DingTalk.MessageType); err != nil {
-                            log.Println("ERR:", err)
+            // tokens := tos[len(IMDingPrefix):]
+            sTokens := strings.Split(tos,",")
+            for i := 0; i < len(sTokens); i++ {
+                tokens := sTokens[i][len(IMDingPrefix):]
+                if tokens != "" {
+                    if cfg.DingTalk.Enable {
+                        log.Println("sending to: ",tokens)
+                        for _, v := range strings.Split(tokens, ";") {
+                            go func(token string) {
+                                if err := ding.Send(token, content, cfg.DingTalk.MessageType); err != nil {
+                                    log.Println("ERR:", err)
+                                }
+                            }(v)
                         }
-                    }(v)
+                    }
                 }
             }
         } else { //微信
